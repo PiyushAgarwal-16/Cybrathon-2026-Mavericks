@@ -122,7 +122,7 @@ class _SystemStatusScreenState extends State<SystemStatusScreen> with WidgetsBin
                       actionLabel: _status['bluetoothPermissionGranted'] == false ? "ALLOW" : "TURN ON",
                       onAction: () => _invokeAction(
                           _status['bluetoothPermissionGranted'] == false 
-                            ? 'openNotificationSettings' // Usually lands on App Details
+                            ? 'openAppSettings' 
                             : 'openBluetoothSettings'
                       ),
                     ),

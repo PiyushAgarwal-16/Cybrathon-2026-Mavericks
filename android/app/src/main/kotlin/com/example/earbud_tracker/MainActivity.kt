@@ -285,6 +285,12 @@ class MainActivity : FlutterActivity() {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     startActivity(intent)
                     result.success(true)
+                } else if (call.method == "openAppSettings") {
+                    val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    intent.data = android.net.Uri.parse("package:$packageName")
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
+                    result.success(true)
                 } else if (call.method == "restartService") {
                     val intent = Intent(applicationContext, CoreService::class.java)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
