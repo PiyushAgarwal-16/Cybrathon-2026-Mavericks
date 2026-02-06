@@ -5,6 +5,8 @@ import 'day_detail_screen.dart';
 import 'history_screen.dart';
 import 'insights_screen.dart';
 import 'login_screen.dart';
+import 'hearing_health.dart';
+import 'insight_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String avgVolume = "--";
   String maxVolume = "--";
   String sessionCount = "--";
+  HearingInsight? dailyInsight;
 
   @override
   void initState() {
@@ -41,6 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
         avgVolume = avgVol.toString();
         maxVolume = maxVol.toString();
         sessionCount = count.toString();
+        
+        dailyInsight = HealthRules.getDailyInsight(seconds, avgVol);
       });
     } on PlatformException catch (e) {
       print("Failed to get data: '${e.message}'.");
@@ -84,116 +89,125 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                "Today",
-                style: TextStyle(
-                  fontSize: 16, 
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey,
-                  letterSpacing: 1.2
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Big Timer Text
-              Text(
-                totalTime,
-                style: const TextStyle(
-                  fontSize: 72,
-                  fontWeight: FontWeight.w300, 
-                  color: Colors.black,
-                  height: 1.0,
-                ),
-              ),
-              const SizedBox(height: 48),
-              
-              // Stats Row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                   _buildStatItem("Avg Vol", avgVolume),
-                   _buildDivider(),
-                   _buildStatItem("Max Vol", maxVolume),
-                   _buildDivider(),
-                   _buildStatItem("Sessions", sessionCount),
-                ],
-              ),
-              
-              const SizedBox(height: 64),
-              
-              // View Sessions Button
-              OutlinedButton(
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DayDetailScreen(date: DateTime.now()),
-                    ),
-                  );
-                  _fetchData();
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  side: const BorderSide(color: Colors.grey),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 32),
+                const Text(
+                  "Today",
+                  style: TextStyle(
+                    fontSize: 16, 
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey,
+                    letterSpacing: 1.2
                   ),
                 ),
-                child: const Text("View today's sessions"),
-              ),
-              
-              const SizedBox(height: 24),
+                const SizedBox(height: 16),
+                // Big Timer Text
+                Text(
+                  totalTime,
+                  style: const TextStyle(
+                    fontSize: 72,
+                    fontWeight: FontWeight.w300, 
+                    color: Colors.black,
+                    height: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 48),
+                
+                // Stats Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                     _buildStatItem("Avg Vol", avgVolume),
+                     _buildDivider(),
+                     _buildStatItem("Max Vol", maxVolume),
+                     _buildDivider(),
+                     _buildStatItem("Sessions", sessionCount),
+                  ],
+                ),
 
-              // Bottom Links
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                       Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HistoryScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      "HISTORY",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  TextButton(
-                    onPressed: () {
-                       Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const InsightsScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      "INSIGHTS",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ),
+                if (dailyInsight != null) ...[
+                  const SizedBox(height: 48),
+                  InsightCard(insight: dailyInsight!),
                 ],
-              ),
-            ],
+                
+                const SizedBox(height: 48),
+                
+                // View Sessions Button
+                OutlinedButton(
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DayDetailScreen(date: DateTime.now()),
+                      ),
+                    );
+                    _fetchData();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    side: const BorderSide(color: Colors.grey),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Text("View today's sessions"),
+                ),
+                
+                const SizedBox(height: 24),
+
+                // Bottom Links
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                         Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HistoryScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "HISTORY",
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    TextButton(
+                      onPressed: () {
+                         Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const InsightsScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "INSIGHTS",
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),
