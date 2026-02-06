@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import android.content.Context
 import com.google.firebase.FirebaseApp
 
 
@@ -219,6 +220,72 @@ class MainActivity : FlutterActivity() {
                             }
                          }
                     }
+                } else if (call.method == "getSystemStatus") {
+                    val notificationManager = androidx.core.app.NotificationManagerCompat.from(applicationContext)
+                    val areNotificationsEnabled = notificationManager.areNotificationsEnabled()
+                    
+                    val powerManager = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+                    val isIgnoringBatteryOptimizations = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        powerManager.isIgnoringBatteryOptimizations(packageName)
+                    } else {
+                        true
+                    }
+                    
+                    val bluetoothAdapter = android.bluetooth.BluetoothAdapter.getDefaultAdapter()
+                    val isBluetoothEnabled = bluetoothAdapter?.isEnabled == true
+                    
+                    val serviceAlive = CoreService.isServiceAlive(applicationContext)
+                    
+                    val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+                    val mode = audioManager.mode
+                    val isAudioActive = audioManager.isMusicActive() || mode == android.media.AudioManager.MODE_IN_CALL || mode == android.media.AudioManager.MODE_IN_COMMUNICATION
+                    
+                    val status = mapOf(
+                        "notificationsEnabled" to areNotificationsEnabled,
+                        "batteryOptimizationsIgnored" to isIgnoringBatteryOptimizations,
+                        "bluetoothEnabled" to isBluetoothEnabled,
+                        "serviceAlive" to serviceAlive,
+                        "audioActive" to isAudioActive
+                    )
+                    
+                    result.success(status)
+                } else if (call.method == "openNotificationSettings") {
+                    val intent = Intent()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        intent.action = android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                        intent.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName)
+                    } else {
+                        intent.action = "android.settings.APP_NOTIFICATION_SETTINGS"
+                        intent.putExtra("app_package", packageName)
+                        intent.putExtra("app_uid", applicationInfo.uid)
+                    }
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
+                    result.success(true)
+                } else if (call.method == "openBatterySettings") {
+                    val intent = Intent()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        intent.action = android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                        intent.data = android.net.Uri.parse("package:$packageName")
+                    } else {
+                         intent.action = android.provider.Settings.ACTION_SETTINGS
+                    }
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
+                    result.success(true)
+                } else if (call.method == "openBluetoothSettings") {
+                    val intent = Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
+                    result.success(true)
+                } else if (call.method == "restartService") {
+                    val intent = Intent(applicationContext, CoreService::class.java)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(intent)
+                    } else {
+                        startService(intent)
+                    }
+                    result.success(true)
                 } else {
                     result.notImplemented()
                 }

@@ -7,6 +7,7 @@ import 'insights_screen.dart';
 import 'login_screen.dart';
 import 'hearing_health.dart';
 import 'insight_card.dart';
+import 'system_status_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -67,6 +68,15 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SystemStatusScreen()),
+              );
+            },
+            icon: const Icon(Icons.settings, color: Colors.black),
+          ),
           StreamBuilder<User?>(
             stream: FirebaseAuth.instance.authStateChanges(),
             builder: (context, snapshot) {
