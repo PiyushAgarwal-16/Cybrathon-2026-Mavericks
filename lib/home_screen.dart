@@ -18,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const platform = MethodChannel('earbud_tracker/dashboard');
+  static bool _hasCheckedStatus = false;
   
   String totalTime = "--";
   String avgVolume = "--";
@@ -29,6 +30,45 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _fetchData();
+    if (!_hasCheckedStatus) {
+      _checkSystemStatus();
+    }
+  }
+
+  Future<void> _checkSystemStatus() async {
+    try {
+      final Map<dynamic, dynamic> status = await platform.invokeMethod('getSystemStatus');
+      
+      final bool isNotificationsEnabled = status['notificationsEnabled'] == true;
+      final bool isBatteryOptimizedIgnored = status['batteryOptimizationsIgnored'] == true;
+      final bool isBluetoothEnabled = status['bluetoothEnabled'] == true;
+      final bool isBluetoothPermissionGranted = status['bluetoothPermissionGranted'] == true;
+      final bool isServiceAlive = status['serviceAlive'] == true;
+
+      // Check for BLOCKING issues only that prevent core function
+      bool hasIssues = !isNotificationsEnabled || 
+                       !isBatteryOptimizedIgnored || 
+                       !isBluetoothEnabled || 
+                       !isBluetoothPermissionGranted ||
+                       !isServiceAlive;
+
+      if (hasIssues && mounted) {
+        _hasCheckedStatus = true;
+        // Small delay to let UI build first
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+           Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SystemStatusScreen()),
+          );
+        }
+      } else {
+        _hasCheckedStatus = true;
+      }
+    } catch (e) {
+      print("Status Check Failed: $e");
+      _hasCheckedStatus = true; // Avoid retrying on error
+    }
   }
 
   Future<void> _fetchData() async {

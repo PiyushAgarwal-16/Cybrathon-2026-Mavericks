@@ -234,6 +234,12 @@ class MainActivity : FlutterActivity() {
                     val bluetoothAdapter = android.bluetooth.BluetoothAdapter.getDefaultAdapter()
                     val isBluetoothEnabled = bluetoothAdapter?.isEnabled == true
                     
+                    val bluetoothPermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                         androidx.core.app.ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+                    } else {
+                        true
+                    }
+                    
                     val serviceAlive = CoreService.isServiceAlive(applicationContext)
                     
                     val audioManager = getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
@@ -244,6 +250,7 @@ class MainActivity : FlutterActivity() {
                         "notificationsEnabled" to areNotificationsEnabled,
                         "batteryOptimizationsIgnored" to isIgnoringBatteryOptimizations,
                         "bluetoothEnabled" to isBluetoothEnabled,
+                        "bluetoothPermissionGranted" to bluetoothPermissionGranted,
                         "serviceAlive" to serviceAlive,
                         "audioActive" to isAudioActive
                     )

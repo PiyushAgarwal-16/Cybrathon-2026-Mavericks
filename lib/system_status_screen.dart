@@ -114,11 +114,17 @@ class _SystemStatusScreenState extends State<SystemStatusScreen> with WidgetsBin
                     const Divider(height: 32),
                      _buildStatusItem(
                       title: "Bluetooth",
-                      isOk: _status['bluetoothEnabled'] == true,
-                      failMessage: "Bluetooth is OFF",
+                      isOk: _status['bluetoothPermissionGranted'] == true && _status['bluetoothEnabled'] == true,
+                      failMessage: _status['bluetoothPermissionGranted'] == false 
+                          ? "Permission Missing" 
+                          : "Bluetooth is OFF",
                       okMessage: "Ready",
-                      actionLabel: "TURN ON",
-                      onAction: () => _invokeAction('openBluetoothSettings'),
+                      actionLabel: _status['bluetoothPermissionGranted'] == false ? "ALLOW" : "TURN ON",
+                      onAction: () => _invokeAction(
+                          _status['bluetoothPermissionGranted'] == false 
+                            ? 'openNotificationSettings' // Usually lands on App Details
+                            : 'openBluetoothSettings'
+                      ),
                     ),
                     const Divider(height: 32),
                      _buildStatusItem(
