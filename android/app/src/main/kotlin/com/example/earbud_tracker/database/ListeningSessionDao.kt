@@ -1,15 +1,17 @@
 package com.example.earbud_tracker.database
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface ListeningSessionDao {
     @Insert
     fun insertSession(session: ListeningSessionEntity)
 
-    @androidx.room.Update
+    @Update
     fun updateSession(session: ListeningSessionEntity)
 
     @Query("SELECT * FROM listening_sessions WHERE id = :id LIMIT 1")
@@ -35,4 +37,5 @@ interface ListeningSessionDao {
 
     @Query("UPDATE listening_sessions SET synced = 1 WHERE id = :id")
     fun markSessionAsSynced(id: String)
+
 }

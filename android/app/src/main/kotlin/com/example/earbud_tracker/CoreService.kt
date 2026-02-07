@@ -153,6 +153,7 @@ class CoreService : Service() {
         super.onCreate()
         isServiceRunning = true
         Log.d(TAG, "onCreate: Initializing service")
+
         
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         createNotificationChannel()
