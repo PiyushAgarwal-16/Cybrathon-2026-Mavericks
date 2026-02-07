@@ -37,6 +37,65 @@ object SyncManager {
                 try {
                     val db = FirebaseFirestore.getInstance()
                     val dao = AppDatabase.getDatabase(context).listeningSessionDao()
+
+                    // --- DOWNLOAD & MERGE PHASE ---
+                    Log.d(TAG, "SYNC_DOWNLOAD_START")
+                    try {
+                         val snapshot = Tasks.await(
+                            db.collection("users")
+                              .document(user.uid)
+                              .collection("sessions")
+                              .get()
+                         )
+
+                         for (doc in snapshot.documents) {
+                             try {
+                                 val id = doc.getString("id") ?: continue
+                                 val deviceName = doc.getString("deviceName") ?: "Unknown"
+                                 val startTime = doc.getLong("startTime") ?: 0L
+                                 val endTime = doc.getLong("endTime") ?: 0L
+                                 val durationSeconds = doc.getLong("durationSeconds") ?: 0L
+                                 val avgVolume = doc.getLong("avgVolume")?.toInt() ?: 0
+                                 val maxVolume = doc.getLong("maxVolume")?.toInt() ?: 0
+                                 val createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
+                                 // Fallback for updatedAt
+                                 val updatedAt = doc.getLong("updatedAt") ?: endTime
+
+                                 val cloudSession = com.example.earbud_tracker.database.ListeningSessionEntity(
+                                     id = id,
+                                     deviceName = deviceName,
+                                     startTime = startTime,
+                                     endTime = endTime,
+                                     durationSeconds = durationSeconds,
+                                     avgVolume = avgVolume,
+                                     maxVolume = maxVolume,
+                                     createdAt = createdAt,
+                                     synced = true, // It came from cloud, so it is synced
+                                     updatedAt = updatedAt
+                                 )
+
+                                 val localSession = dao.getSessionById(id)
+                                 
+                                 if (localSession == null) {
+                                     dao.insertSession(cloudSession)
+                                     Log.d(TAG, "SYNC_INSERT_LOCAL: $id")
+                                 } else {
+                                     // Compare updatedAt
+                                     if (updatedAt > localSession.updatedAt) {
+                                         dao.updateSession(cloudSession)
+                                         Log.d(TAG, "SYNC_UPDATE_LOCAL: $id")
+                                     }
+                                 }
+
+                             } catch (e: Exception) {
+                                 Log.e(TAG, "Failed to process cloud doc ${doc.id}", e)
+                             }
+                         }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "SYNC_DOWNLOAD_ERROR", e)
+                    }
+
+                    // --- UPLOAD PHASE ---
                     val unsyncedSessions = dao.getUnsyncedSessions()
                     
                     if (unsyncedSessions.isEmpty()) {
@@ -53,7 +112,8 @@ object SyncManager {
                                 "durationSeconds" to session.durationSeconds,
                                 "avgVolume" to session.avgVolume,
                                 "maxVolume" to session.maxVolume,
-                                "createdAt" to session.createdAt
+                                "createdAt" to session.createdAt,
+                                "updatedAt" to session.updatedAt
                             )
 
                             val docRef = db.collection("users")

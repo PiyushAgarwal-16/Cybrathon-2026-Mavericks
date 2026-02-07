@@ -342,7 +342,8 @@ class CoreService : Service() {
             endTime = now,
             durationSeconds = durationSeconds,
             avgVolume = avgVolume,
-            maxVolume = sessionMaxVolume
+            maxVolume = sessionMaxVolume,
+            updatedAt = now
         )
         
         CoroutineScope(Dispatchers.IO).launch {

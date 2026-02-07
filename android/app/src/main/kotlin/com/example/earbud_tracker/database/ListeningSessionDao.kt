@@ -9,6 +9,12 @@ interface ListeningSessionDao {
     @Insert
     fun insertSession(session: ListeningSessionEntity)
 
+    @androidx.room.Update
+    fun updateSession(session: ListeningSessionEntity)
+
+    @Query("SELECT * FROM listening_sessions WHERE id = :id LIMIT 1")
+    fun getSessionById(id: String): ListeningSessionEntity?
+
     @Query("SELECT * FROM listening_sessions WHERE startTime BETWEEN :start AND :end")
     fun getSessionsByDateRange(start: Long, end: Long): List<ListeningSessionEntity>
 

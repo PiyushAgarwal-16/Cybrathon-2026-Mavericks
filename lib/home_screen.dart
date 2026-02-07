@@ -30,8 +30,18 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _fetchData();
+    _triggerSync();
     if (!_hasCheckedStatus) {
       _checkSystemStatus();
+    }
+  }
+
+  Future<void> _triggerSync() async {
+    try {
+      // Fire and forget sync on startup
+      platform.invokeMethod('triggerSync');
+    } catch (e) {
+      print("Startup Sync Failed: $e");
     }
   }
 
@@ -139,124 +149,121 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 32),
-                const Text(
-                  "Today",
-                  style: TextStyle(
-                    fontSize: 16, 
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey,
-                    letterSpacing: 1.2
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 32),
+                  const Text(
+                    "Today",
+                    style: TextStyle(
+                      fontSize: 16, 
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                      letterSpacing: 1.2
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                // Big Timer Text
-                Text(
-                  totalTime,
-                  style: const TextStyle(
-                    fontSize: 72,
-                    fontWeight: FontWeight.w300, 
-                    color: Colors.black,
-                    height: 1.0,
+                  const SizedBox(height: 16),
+                  // Big Timer Text
+                  Text(
+                    totalTime,
+                    style: const TextStyle(
+                      fontSize: 72,
+                      fontWeight: FontWeight.w300, 
+                      color: Colors.black,
+                      height: 1.0,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 48),
-                
-                // Stats Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                     _buildStatItem("Avg Vol", avgVolume),
-                     _buildDivider(),
-                     _buildStatItem("Max Vol", maxVolume),
-                     _buildDivider(),
-                     _buildStatItem("Sessions", sessionCount),
-                  ],
-                ),
-
-                if (dailyInsight != null) ...[
                   const SizedBox(height: 48),
-                  InsightCard(insight: dailyInsight!),
-                ],
-                
-                const SizedBox(height: 48),
-                
-                // View Sessions Button
-                OutlinedButton(
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DayDetailScreen(date: DateTime.now()),
-                      ),
-                    );
-                    _fetchData();
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    side: const BorderSide(color: Colors.grey),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
+                  
+                  // Stats Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                       _buildStatItem("Avg Vol", avgVolume),
+                       _buildDivider(),
+                       _buildStatItem("Max Vol", maxVolume),
+                       _buildDivider(),
+                       _buildStatItem("Sessions", sessionCount),
+                    ],
                   ),
-                  child: const Text("View today's sessions"),
-                ),
-                
-                const SizedBox(height: 24),
+                  
+                  const SizedBox(height: 48),
+                  
+                  // View Sessions Button
+                  OutlinedButton(
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DayDetailScreen(date: DateTime.now()),
+                        ),
+                      );
+                      _fetchData();
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.grey),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text("View today's sessions"),
+                  ),
+                  
+                  const SizedBox(height: 24),
 
-                // Bottom Links
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                         Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HistoryScreen(),
+                  // Bottom Links
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                           Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HistoryScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "HISTORY",
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                            letterSpacing: 1.5,
                           ),
-                        );
-                      },
-                      child: const Text(
-                        "HISTORY",
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                          letterSpacing: 1.5,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 24),
-                    TextButton(
-                      onPressed: () {
-                         Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const InsightsScreen(),
+                      const SizedBox(width: 24),
+                      TextButton(
+                        onPressed: () {
+                           Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const InsightsScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "INSIGHTS",
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                            letterSpacing: 1.5,
                           ),
-                        );
-                      },
-                      child: const Text(
-                        "INSIGHTS",
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                          letterSpacing: 1.5,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         ),

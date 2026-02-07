@@ -14,5 +14,6 @@ data class ListeningSessionEntity(
     val avgVolume: Int,
     val maxVolume: Int,
     val createdAt: Long = System.currentTimeMillis(),
-    val synced: Boolean = false
+    val synced: Boolean = false,
+    val updatedAt: Long = System.currentTimeMillis()
 )
